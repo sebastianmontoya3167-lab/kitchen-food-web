@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen & Food - Pedidos Web</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f4f4f9; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-top: 0; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+    button:hover { background: #218838; }
+    .order-list { margin-top: 20px; }
+    .order-item { background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Kitchen & Food</h1>
+    <p>Realiza tu pedido en línea rápido y fácil.</p>
+    
+    <form id="orderForm">
+      <div class="form-group">
+        <label for="cliente">Nombre o Mesa:</label>
+        <input type="text" id="cliente" required>
+      </div>
+      <div class="form-group">
+        <label for="detalle">Producto / Menú:</label>
+        <input type="text" id="detalle" placeholder="Ej: Plato del día + Jugo" required>
+      </div>
+      <div class="form-group">
+        <label for="total">Total ($):</label>
+        <input type="number" id="total" required>
+      </div>
+      <button type="submit">Enviar Pedido</button>
+    </form>
+
+    <div class="order-list">
+      <h2>Pedidos en Curso</h2>
+      <div id="ordersContainer">Cargando...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = '/api/v1/pedidos';
+
+    async function cargarPedidos() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      const container = document.getElementById('ordersContainer');
+      container.innerHTML = '';
+      data.data.forEach(p => {
+        container.innerHTML += `
+          <div class="order-item">
+            <strong>#${p.id} - ${p.cliente}</strong><br>
+            ${p.detalle} - $${p.total}<br>
+            <small>Estado: ${p.estado}</small>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        cliente: document.getElementById('cliente').value,
+        detalle: document.getElementById('detalle').value,
+        total: Number(document.getElementById('total').value)
+      };
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      e.target.reset();
+      cargarPedidos();
+    });
+
+    cargarPedidos();
+  </script>
+</body>
+</html>
